@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Soap vs Virus</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <style>
     body {
         margin: 0;
@@ -10,29 +11,31 @@
         background: radial-gradient(circle at center, #b2fefa, #0ed2f7);
         font-family: 'Segoe UI', sans-serif;
         cursor: none;
+        touch-action: none; /* Prevent scrolling during touch play */
     }
 
     /* Header */
     .header {
         position: fixed;
-        top: 20px;
+        top: 10px;
         left: 50%;
         transform: translateX(-50%);
-        padding: 8px 20px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 12px;
+        padding: 6px 15px;
+        background: rgba(255, 255, 255, 0.25);
+        border-radius: 10px;
         color: white;
-        font-size: 1.2rem;
+        font-size: 1rem;
         font-weight: bold;
-        backdrop-filter: blur(8px);
+        backdrop-filter: blur(6px);
         box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         z-index: 1000;
+        user-select: none;
     }
 
     /* Soap cursor */
     .soap-cursor {
         position: absolute;
-        font-size: 2.8rem;
+        font-size: clamp(2rem, 5vw, 3rem); /* Adjust size based on screen */
         pointer-events: none;
         transform: translate(-50%, -50%);
         text-shadow: 2px 2px 5px rgba(0,0,0,0.25);
@@ -42,7 +45,7 @@
     /* Virus */
     .virus {
         position: absolute;
-        font-size: 2.5rem;
+        font-size: clamp(2rem, 6vw, 2.5rem);
         user-select: none;
         cursor: pointer;
         animation: bounce 0.6s infinite alternate;
@@ -83,19 +86,31 @@ const scoreDisplay = document.getElementById('score');
 let virusId = 0;
 let score = 0;
 
-// Follow mouse with soap
+// Mouse follow
 document.addEventListener('mousemove', e => {
     cursor.style.left = e.pageX + 'px';
     cursor.style.top = e.pageY + 'px';
 });
 
-// Soap click animation
-document.addEventListener('mousedown', () => {
+// Touch follow
+document.addEventListener('touchmove', e => {
+    let touch = e.touches[0];
+    cursor.style.left = touch.pageX + 'px';
+    cursor.style.top = touch.pageY + 'px';
+}, { passive: false });
+
+// Click/tap animation
+function pressCursor() {
     cursor.style.transform = 'translate(-50%, -50%) scale(0.9)';
-});
-document.addEventListener('mouseup', () => {
+}
+function releaseCursor() {
     cursor.style.transform = 'translate(-50%, -50%) scale(1)';
-});
+}
+
+document.addEventListener('mousedown', pressCursor);
+document.addEventListener('mouseup', releaseCursor);
+document.addEventListener('touchstart', pressCursor);
+document.addEventListener('touchend', releaseCursor);
 
 // Spawn viruses
 function spawnVirus() {
@@ -122,8 +137,8 @@ function spawnVirus() {
     }
     move();
 
-    // Damage on click
-    virus.addEventListener('click', () => {
+    // Damage on click/tap
+    function hitVirus() {
         let health = parseInt(virus.dataset.health) - 1;
         virus.dataset.health = health;
         if (health <= 0) {
@@ -132,6 +147,11 @@ function spawnVirus() {
             score += 10;
             scoreDisplay.textContent = score;
         }
+    }
+    virus.addEventListener('click', hitVirus);
+    virus.addEventListener('touchstart', e => {
+        e.preventDefault();
+        hitVirus();
     });
 }
 
@@ -141,4 +161,3 @@ setInterval(spawnVirus, 1000);
 
 </body>
 </html>
-    
